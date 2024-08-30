@@ -1,9 +1,14 @@
 import React from "react";
-import logo from "./logo.svg";
 import "./App.css";
+import { Preview } from "./component";
+
 
 function App() {
-    return <div className="App">Hello World</div>;
+    return (
+        <div className="App">
+            <Preview />
+        </div>
+    );
 }
 
 export default App;

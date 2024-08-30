@@ -5,6 +5,7 @@
     "description": "This is a Chrome extension built with React and TypeScript",
     "action": {
         "default_popup": "dist/js/index.html",
-        "default_title": "React Chrome Extension"
-    }
+        "default_title": "H Clipper"
+    },
+    "permissions": ["activeTab", "scripting", "userScripts"]
 }

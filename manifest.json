@@ -1,11 +1,26 @@
 {
     "version": "1.0.0",
     "manifest_version": 3,
-    "name": "React Chrome Extension",
+    "name": "H Clipper",
     "description": "This is a Chrome extension built with React and TypeScript",
     "action": {
         "default_popup": "dist/js/index.html",
         "default_title": "H Clipper"
     },
-    "permissions": ["activeTab", "scripting", "userScripts"]
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "userScripts",
+        "identity",
+        "storage"
+    ],
+    "background": {
+        "service_worker": "service-worker.js"
+    },
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt2/cKpmqH9rKpJh6NlVYNi2w+ZDsLTZpUtByTe7UixIjewLuisFDMSyATIDk2m05LGadrMVMZzHyIHQEK4GcpLA2Kr2Dqj+fmzLcmG+9VbMS3wsqfD0d+sD7Nyoxk9Z06vEViyQhZcdtVduE0TwTBT/QCCEbk3cFoYFJNR3wyg5JpZT1UEelSAHSJJIGZIQse682nBroDqNGHICPlfOWapVVwO/RXYU06QPzCMeAFRmCdzwhZgMrPbwnb0XH7xchbmdoORlgtuP7eCE+VtFdhUC5POkhehfUG2FuNKG24+YGgcXVjbw0LUUB084Lv2N2QiBWwZyHn69HMPrTmG61RwIDAQAB",
+    "oauth2": {
+        "client_id": "ebfc1d3a-a5e3-4d9d-9938-8e533562b455",
+        "scopes": ["identity", "email", "profile"]
+    },
+    "host_permissions": ["https://api.notion.com/*"]
 }

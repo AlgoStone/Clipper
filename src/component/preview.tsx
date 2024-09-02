@@ -1,5 +1,6 @@
 import React from "react";
 import "./preview.css";
+import { LeetcodeProblemReader } from "../utils";
 
 export const Preview = () => {
     const [desp, setDesp] = React.useState<string>("Empty");
@@ -58,7 +59,7 @@ export const Preview = () => {
                 </div>
             </div>
             <button
-                onClick={() => {
+                onClick={async () => {
                     chrome.tabs.query(
                         { active: true, currentWindow: true },
                         (tabs) => {
@@ -67,13 +68,11 @@ export const Preview = () => {
                                 console.error("Tab is undefined.");
                                 return;
                             }
-                            setOptions((pre) => {
-                                return {
-                                    ...pre,
+                            setOptions((pre) => ({
+                                ...pre,
+                                url: tab?.url || "",
+                            }));
 
-                                    url: tab.url || "not found",
-                                };
-                            });
                             chrome.scripting.executeScript(
                                 {
                                     target: { tabId: tab.id },
@@ -81,90 +80,18 @@ export const Preview = () => {
                                         document.documentElement.outerHTML,
                                 },
                                 (result) => {
-                                    if (!result[0].result) return;
-                                    const parser = new DOMParser();
-                                    const htmlDoc = parser.parseFromString(
-                                        result[0].result,
-                                        "text/html"
+                                    const metadata = LeetcodeProblemReader(
+                                        result[0].result
                                     );
+                                    setOptions((pre) => ({
+                                        ...pre,
+                                        title: metadata.title,
+                                        difficulty: metadata.difficulty,
+                                        topics: metadata.topics,
+                                        similar: metadata.similar,
+                                    }));
 
-                                    const body = htmlDoc.body;
-
-                                    const res = body.querySelectorAll(
-                                        '[data-track-load="description_content"]'
-                                    );
-                                    setDesp(res[0].innerHTML);
-
-                                    const difficulty = body.querySelectorAll(
-                                        "*[class*='text-difficulty']"
-                                    );
-                                    if (!difficulty.length) return;
-                                    setOptions((pre) => {
-                                        return {
-                                            ...pre,
-                                            difficulty: difficulty[0].innerHTML,
-                                        };
-                                    });
-
-                                    const fullurl = htmlDoc.querySelector(
-                                        'meta[property="og:url"]'
-                                    );
-                                    const metaContent = fullurl
-                                        ? fullurl.getAttribute("content") || ""
-                                        : "";
-                                    const problemSlug = metaContent
-                                        .replace(
-                                            "https://leetcode.com/problems/",
-                                            ""
-                                        )
-                                        .replace(
-                                            "https://leetcode.cn/problems/",
-                                            ""
-                                        )
-                                        .replace("/description", "");
-
-                                    const linkElements = body.querySelector(
-                                        `a[href="/problems/${problemSlug}/"]`
-                                    );
-                                    if (linkElements) {
-                                        setOptions((pre) => {
-                                            return {
-                                                ...pre,
-                                                title: linkElements.innerHTML,
-                                            };
-                                        });
-                                    }
-
-                                    const topicElements =
-                                        body.querySelectorAll(
-                                            "a[href^='/tag']"
-                                        );
-
-                                    if (topicElements.length) {
-                                        setOptions((pre) => {
-                                            return {
-                                                ...pre,
-                                                topics: Array.from(
-                                                    topicElements
-                                                ).map((ele) => ele.innerHTML),
-                                            };
-                                        });
-                                    }
-
-                                    const similarElements =Array.from(
-                                        body.querySelectorAll(
-                                            `a[href^='/problems/']:not(a[href='/problems/']):not(a[href='/problems/${problemSlug}/'])`
-                                        )).filter(link => link.childNodes.length === 1 && link.childNodes[0].nodeType === Node.TEXT_NODE);
-                                    if (similarElements.length) {
-                                        setOptions((pre) => {
-                                            return {
-                                                ...pre,
-                                                similar: Array.from(
-                                                    similarElements
-                                                ).map((ele) => ele.innerHTML),
-                                            };
-                                        });
-                                    }
+                                    setDesp(metadata.description);
                                 }
                             );
                         }

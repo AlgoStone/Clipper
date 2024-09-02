@@ -1,13 +1,19 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { Preview, Auth } from "./component";
 import "./App.css";
-import { Preview } from "./component";
-
 
 function App() {
+    const [notionAccessToken, setNotionAccessToken] = useState<string>();
+
+    useEffect(() => {
+        chrome.storage.local.get(["accessToken"], function (result) {
+            console.log("Access token retrieved:", result.accessToken);
+            setNotionAccessToken(result.accessToken);
+        });
+    }, []);
+
     return (
-        <div className="App">
-            <Preview />
-        </div>
+        <div className="App">{notionAccessToken ? <Preview /> : <Auth />}</div>
     );
 }
 

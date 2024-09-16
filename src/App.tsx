@@ -7,13 +7,18 @@ function App() {
 
     useEffect(() => {
         chrome.storage.local.get(["accessToken"], function (result) {
-            console.log("Access token retrieved:", result.accessToken);
             setNotionAccessToken(result.accessToken);
         });
     }, []);
 
     return (
-        <div className="App">{notionAccessToken ? <Preview /> : <Auth />}</div>
+        <div className="App">
+            {notionAccessToken ? (
+                <Preview notionAccessToken={notionAccessToken} />
+            ) : (
+                <Auth />
+            )}
+        </div>
     );
 }
 

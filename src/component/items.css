@@ -1,0 +1,23 @@
+.db-item-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: 4px 8px;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+.db-item-icon {
+    /* width: 15px;
+    height: 15px; */
+    margin-left: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.db-item-title {
+    font-size: 1em;
+    padding: 4px 4px;
+}

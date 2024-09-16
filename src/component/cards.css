@@ -1,0 +1,32 @@
+.card-container {
+    max-width: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: rgba(15, 15, 15, 0.1) 0px 0px 0px 1px,
+        rgba(15, 15, 15, 0.1) 0px 2px 4px;
+    border-radius: 6px;
+    transition: "background" 100ms ease-out;
+}
+
+/* Problem Card */
+.problem-card {
+    padding: 20px;
+}
+
+.problem-card-title-container {
+}
+
+.problem-card-title {
+    display: flex;
+    flex-direction: row;
+    font-weight: 600;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.problem-card-title-content {
+    font-size: 1.2rem;
+}

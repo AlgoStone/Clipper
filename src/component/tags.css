@@ -1,0 +1,12 @@
+.tag-container {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center; /* This centers the text vertically */
+    padding: 2px 4px; /* Increase padding for better vertical alignment */
+    margin-left: 4px;
+    /* font-size: 0.8rem; */
+    color: #4a5568;
+    background-color: rgb(197, 249, 208);
+    border-radius: 8px;
+}

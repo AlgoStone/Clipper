@@ -1,0 +1,12 @@
+.database-selector-db-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.database-selector-db-item {
+    background-color: aquamarine;
+    border: 1px solid black;
+    border-radius: 5px;
+    margin: 5px;
+    padding: 5px;
+}

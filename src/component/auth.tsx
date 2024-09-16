@@ -5,7 +5,7 @@ export const Auth = () => {
 
     useEffect(() => {
         chrome.storage.local.get(["accessToken"], function (result) {
-            console.log("Access token retrieved:", result.accessToken);
+            console.log("Access token retrieved");
             setCode(result.accessToken);
         });
     }, []);

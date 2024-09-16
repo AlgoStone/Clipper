@@ -1,105 +1,92 @@
-import React from "react";
-import "./preview.css";
+import { useState, useEffect } from "react";
 import { LeetcodeProblemReader } from "../utils";
+import { ProblemMetaData, ModeType } from "../types";
+import { DatabaseSelector } from "./selector";
+import { ProblemCards } from "./cards";
 
-export const Preview = () => {
-    const [desp, setDesp] = React.useState<string>("Empty");
-    const [showDesp, setShowDesp] = React.useState<boolean>(false);
-    const [options, setOptions] = React.useState<{
-        [key: string]: string | Array<string>;
-    }>({
-        title: "Title",
-        url: "URL",
-        difficulty: "Difficulty",
-        topics: [],
-        similar: [],
-    });
-    const [showOptions, setShowOptions] = React.useState<boolean>(false);
+import "./preview.css";
+
+export interface PreviewProps {
+    notionAccessToken: string;
+}
+
+export const Preview = (props: PreviewProps) => {
+    const { notionAccessToken } = props;
+    const [probMetaData, setProbMetaData] = useState<ProblemMetaData>();
+    const [mode, setMode] = useState<ModeType>(ModeType.Home);
+
+    const fetchProblemMetaData = () => {
+        const newMetaData = {} as ProblemMetaData;
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const tab = tabs[0];
+            if (!tab.id) {
+                console.error("Tab is undefined.");
+                return;
+            }
+            newMetaData.url = tab?.url || "";
+
+            chrome.scripting.executeScript(
+                {
+                    target: { tabId: tab.id },
+                    func: () => document.documentElement.outerHTML,
+                },
+                (result) => {
+                    if (!result || result.length === 0) {
+                        console.error("No result found.");
+                        return;
+                    }
+                    const metadata = LeetcodeProblemReader(result[0].result);
+                    newMetaData.description = metadata.description;
+                    newMetaData.title = metadata.title;
+                    newMetaData.difficulty = metadata.difficulty;
+                    newMetaData.topics = metadata.topics;
+                    newMetaData.similar_problems = metadata.similar;
+                    setProbMetaData(newMetaData);
+                }
+            );
+        });
+    };
+
+    useEffect(() => {
+        fetchProblemMetaData();
+    }, []);
 
     return (
         <div>
-            <h1>Preview</h1>
-            <div style={{ overflowY: "scroll", height: "200px" }}>
-                <div
-                    onClick={() => {
-                        setShowDesp((pre) => !pre);
-                    }}
-                >
-                    {showDesp ? desp : "Description"}
-                </div>
-                <div
-                    onClick={() => {
-                        setShowOptions((pre) => !pre);
-                    }}
-                >
-                    {showOptions ? (
-                        <div>
-                            <div>
-                                <div>Title: </div>
-                                {options.title}
-                                <div>URL: </div>
-                                {options.url}
-                                <div>Difficulty: </div>
-                                {options.difficulty}
-                                <div>Topics: </div>
-                                {(options.topics as string[]).map((topic) => (
-                                    <div key={topic}>{topic}</div>
-                                ))}
-                                <div>Similar: </div>
-                                {(options.similar as string[]).map(
-                                    (similar) => (
-                                        <div key={similar}>{similar}</div>
-                                    )
-                                )}
-                            </div>
+            {mode === ModeType.Home && (
+                <>
+                    <h1>Home</h1>
+                    {probMetaData && (
+                        <div
+                        // style={{ overflowY: "scroll", height: "200px" }}
+                        >
+                            <ProblemCards metadata={probMetaData} />
                         </div>
-                    ) : (
-                        "Options"
                     )}
-                </div>
-            </div>
-            <button
-                onClick={async () => {
-                    chrome.tabs.query(
-                        { active: true, currentWindow: true },
-                        (tabs) => {
-                            const tab = tabs[0];
-                            if (!tab.id) {
-                                console.error("Tab is undefined.");
-                                return;
-                            }
-                            setOptions((pre) => ({
-                                ...pre,
-                                url: tab?.url || "",
-                            }));
-
-                            chrome.scripting.executeScript(
-                                {
-                                    target: { tabId: tab.id },
-                                    func: () =>
-                                        document.documentElement.outerHTML,
-                                },
-                                (result) => {
-                                    const metadata = LeetcodeProblemReader(
-                                        result[0].result
-                                    );
-                                    setOptions((pre) => ({
-                                        ...pre,
-                                        title: metadata.title,
-                                        difficulty: metadata.difficulty,
-                                        topics: metadata.topics,
-                                        similar: metadata.similar,
-                                    }));
-
-                                    setDesp(metadata.description);
-                                }
-                            );
-                        }
-                    );
-                }}
-            >
-                Refresh
-            </button>
+                    <button
+                        onClick={() => {
+                            fetchProblemMetaData();
+                        }}
+                    >
+                        Refresh
+                    </button>
+                    <button
+                        onClick={() => {
+                            setMode(ModeType.ChooseDataBase);
+                        }}
+                    >
+                        Choose Database
+                    </button>
+                </>
+            )}
+            {mode === ModeType.ChooseDataBase && (
+                <DatabaseSelector
+                    notionAccessToken={notionAccessToken}
+                    backBtn={() => {
+                        setMode(ModeType.Home);
+                    }}
+                />
+            )}
         </div>
     );
 };

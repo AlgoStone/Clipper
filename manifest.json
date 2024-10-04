@@ -22,5 +22,11 @@
         "client_id": "ebfc1d3a-a5e3-4d9d-9938-8e533562b455",
         "scopes": ["identity", "email", "profile"]
     },
-    "host_permissions": ["https://api.notion.com/*"]
+    "host_permissions": ["https://api.notion.com/*"],
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["contentScript.js"]
+        }
+    ]
 }

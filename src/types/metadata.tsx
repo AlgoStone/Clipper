@@ -1,10 +1,18 @@
 export type ProblemMetaData = {
-    title: string;
-    description: string;
-    url: string;
+    name: string;
+    index: number;
     difficulty: string;
-    topics: string[];
+    tags: string[];
     similar_problems: string[];
+
+    description: string;
+    constraints: string;
+    examples: string[];
+    follow_ups?: string;
+
+    hints?: string[];
+    solutions?: string[];
+    notes?: string[];
 };
 
 export enum ModeType {

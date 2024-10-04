@@ -1,6 +1,6 @@
 export enum TagType {
     Difficulty = "difficulty",
-    Topic = "topic",
+    Tag = "tag",
     Similar = "similar",
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Preview, Auth } from "./component";
+import { Home, Auth } from "./component";
 import "./App.css";
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
     return (
         <div className="App">
             {notionAccessToken ? (
-                <Preview notionAccessToken={notionAccessToken} />
+                <Home notionAccessToken={notionAccessToken} />
             ) : (
                 <Auth />
             )}

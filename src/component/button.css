@@ -1,0 +1,18 @@
+.clipper-btn {
+    font-weight: 400;
+    text-align: center;
+    background-color: #ffffff;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: solid 2px #f1f1ef;
+}
+
+.clipper-btn:active {
+    border-style: outset;
+    box-shadow: none;
+}
+
+.clipper-btn:hover {
+    background-color: #f1f1ef;
+}

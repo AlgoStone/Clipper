@@ -1,32 +1,62 @@
 .card-container {
-    max-width: 90%;
+    width: 334px; /* 350px - 8px - 8px */
+    height: 462px; /* 500px - 8px - 30px */
     display: flex;
     justify-content: center;
-    align-items: center;
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: rgba(15, 15, 15, 0.1) 0px 0px 0px 1px,
-        rgba(15, 15, 15, 0.1) 0px 2px 4px;
+    overflow-y: scroll;
+    box-shadow: rgba(86, 68, 68, 0.1) 0px 0px 0px 1px,
+        rgba(9, 160, 220, 0.1) 0px 2px 4px;
     border-radius: 6px;
-    transition: "background" 100ms ease-out;
+}
+
+.button-group {
+    position: absolute;
+    bottom: 4px;
+    width: 95%;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 /* Problem Card */
 .problem-card {
-    padding: 20px;
+    padding: 10px;
 }
 
-.problem-card-title-container {
-}
+/* .problem-card-title-container {
+} */
 
 .problem-card-title {
-    display: flex;
-    flex-direction: row;
+    font-size: 16px;
     font-weight: 600;
-    margin-bottom: 10px;
-    align-items: center;
+    padding: 4px 0;
 }
 
-.problem-card-title-content {
-    font-size: 1.2rem;
+.problem-card-body {
+    padding-bottom: 10px;
+}
+
+.problem-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.markdown-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 4px 0 4px 0;
+}
+
+.markdown-border {
+    border: 1px dotted black;
+    border-radius: 6px;
+    padding: 2px;
+    /* margin: 8px 0; */
+}
+
+.markdown-body {
+    padding: 4px 8px;
 }

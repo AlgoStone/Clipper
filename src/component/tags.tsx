@@ -9,8 +9,11 @@ export type TagProps = {
 
 export const Tag = (props: TagProps) => {
     const { type, value, onClick } = props;
-
     const color = getTagColor(type, value);
+
+    if (!color) {
+        console.error("Invalid tag type or value", type, value);
+    }
 
     return (
         <div className="tag-container" onClick={onClick}>
@@ -87,11 +90,23 @@ const getTagColor = (type: TagType, value: string) => {
             font: "#1cb8b8",
             background: "#f0f0f0",
         },
+        简单: {
+            font: "#1cb8b8",
+            background: "#f0f0f0",
+        },
         medium: {
             font: "#ffb800",
             background: "#f0f0f0",
         },
+        中等: {
+            font: "#ffb800",
+            background: "#f0f0f0",
+        },
         hard: {
+            font: "#f63636",
+            background: "#f0f0f0",
+        },
+        困难: {
             font: "#f63636",
             background: "#f0f0f0",
         },

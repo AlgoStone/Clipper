@@ -1,4 +1,8 @@
 import { htmlToJson } from "./markdown_utils";
+import rehypeParse from "rehype-parse";
+import rehypeRemark from "rehype-remark";
+import remarkStringify from "remark-stringify";
+import { unified } from "unified";
 
 const formatMarkdown = (md: string) => {
     // replace all "\n\n\n\n" with "\n\n"
@@ -8,6 +12,26 @@ const formatMarkdown = (md: string) => {
     // remove trailing whitespaces and newlines
     formattedMD = formattedMD.trimEnd();
     return formattedMD;
+};
+
+export const PlainTextReader = async (
+    outerHTML: string | undefined
+): Promise<string> => {
+    if (!outerHTML) {
+        console.error("outerHTML is undefined.");
+        return "Undefined Plain Text";
+    }
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(outerHTML, "text/html");
+    const body = htmlDoc.body;
+
+    const file = await unified()
+        .use(rehypeParse)
+        .use(rehypeRemark)
+        .use(remarkStringify)
+        .process(body.innerHTML);
+    const res = String(file);
+    return res;
 };
 
 export const LeetcodeProblemReader = async (outerHTML: string | undefined) => {
@@ -101,8 +125,6 @@ export const LeetcodeProblemReader = async (outerHTML: string | undefined) => {
             problemMetaData.follow_ups = formatMarkdown(
                 data.follow_up as string
             );
-
-            console.log(problemMetaData);
         })
         .catch((err) => {
             console.error(err);
@@ -111,4 +133,27 @@ export const LeetcodeProblemReader = async (outerHTML: string | undefined) => {
     return problemMetaData;
 };
 
-export const LeetcodeSolutionReader = async () => {};
+export const LeetcodeSolutionReader = async (outerHTML: string | undefined) => {
+    if (!outerHTML) {
+        console.error("outerHTML is undefined.");
+        return "Undefined Solution";
+    }
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(outerHTML, "text/html");
+    const body = htmlDoc.body;
+
+    // mYe_l WRmCx
+    // const container = body.querySelectorAll("div[class*='break-words']");
+    const container = body.querySelectorAll("div.mYe_l.WRmCx");
+    console.log(container);
+    if (container.length) {
+        const file = await unified()
+            .use(rehypeParse)
+            .use(rehypeRemark)
+            .use(remarkStringify)
+            .process(container[0].innerHTML);
+        return String(file);
+    }
+
+    return "Empty Solution";
+};

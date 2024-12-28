@@ -57,6 +57,22 @@
     /* margin: 8px 0; */
 }
 
+.markdown-edit-button {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.markdown-edit-textarea {
+    font-size: 12px;
+    border-radius: 6px;
+    width: 278px;
+    height: auto; /* Allow dynamic height adjustment */
+    border: none;
+    resize: vertical;
+    outline: none;
+    padding: 10px 8px 0px 8px;
+}
+
 .markdown-body {
-    padding: 4px 8px;
+    padding: 4px 8px 0px 8px;
 }

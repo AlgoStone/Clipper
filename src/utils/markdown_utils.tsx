@@ -1,3 +1,23 @@
+import { ProblemMetaData } from "../types";
+
+export const nameToTitle = (name: string, reverse: boolean = false) => {
+    const avoidCapitalization = ["and", "or", "in", "on", "of", "to", "a"];
+    if (reverse) {
+        return name
+            .split(" ")
+            .map((word) => word.toLowerCase())
+            .join("-");
+    }
+
+    return name
+        .split("-")
+        .map((word) => {
+            if (avoidCapitalization.includes(word.toLowerCase()))
+                return word.toLowerCase();
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join(" ");
+};
 
 export const handleSpace = (
     text: string | null,
@@ -20,7 +40,16 @@ const symbolList = [",", ".", "!"];
 
 export const handleElemenst = (node: Node): string => {
     if (!node.hasChildNodes()) {
-        return handleSpace(node.textContent);
+        if ((node as Element).tagName === "SPAN") {
+            const text = handleSpace(node.textContent);
+            if (text.trim() === "") {
+                return "";
+            } else {
+                return "$" + handleSpace(node.textContent, "$ ");
+            }
+        } else {
+            return handleSpace(node.textContent);
+        }
     }
 
     const element = node as HTMLElement;
@@ -40,13 +69,33 @@ export const handleElemenst = (node: Node): string => {
         case "EM":
             return "*" + handleSpace(innerMD, "* ");
         case "CODE":
-            return "$$" + handleSpace(innerMD, "$$ ");
+            return "$" + handleSpace(innerMD, "$ ");
         case "LI":
             return "- " + handleSpace(innerMD, "") + "\n";
         case "U":
             return handleSpace(innerMD);
+        case "DIV":
+            return handleSpace(innerMD);
+        case "SPAN":
+            return handleSpace(innerMD);
+        case "P":
+            return handleSpace(innerMD) + "\n";
+        case "PRE":
+            return "```\nEmpty Code```\n";
+        case "UL":
+            return handleSpace(innerMD);
+        case "H4":
+            return "#### " + handleSpace(innerMD) + "\n";
+        case "H3":
+            return "### " + handleSpace(innerMD) + "\n";
+        case "H2":
+            return "## " + handleSpace(innerMD) + "\n";
+        case "H1":
+            return "# " + handleSpace(innerMD) + "\n";
+        case "svg":
+            return "";
         default:
-            console.log("unsupported 2", element.tagName, element);
+            console.log("unsupported element", element.tagName, element);
             return "unsupported";
     }
 };
@@ -109,7 +158,7 @@ export const htmlToJson = async (html: string) => {
     for (let i = 0; i < childElements.length; i++) {
         const child = childElements[i];
         if (child.tagName === "P" && child.textContent === "\u00A0") {
-            f_index = (f_index + 1) % fields.length;
+            f_index = Math.min(f_index + 1, fields.length - 1);
             continue;
         }
         const field_value = fields[f_index];
@@ -119,14 +168,14 @@ export const htmlToJson = async (html: string) => {
             problemInfo[field_value] += content.trim() + "\n\n";
         } else if (Array.isArray(problemInfo[field_value])) {
             if (field_value === "examples") {
-                if (content.includes("Example ")) {
+                if (content.includes("Example ") || content.includes("示例 ")) {
                     (problemInfo[field_value] as string[]).push(
                         content + "\n\n"
                     );
                 } else {
                     (problemInfo[field_value] as string[])[
                         (problemInfo[field_value] as string[]).length - 1
-                    ] += content;
+                    ] += content.replace(/\n/g, "\n\n");
                 }
             } else {
                 (problemInfo[field_value] as string[]).push(content);
@@ -137,4 +186,41 @@ export const htmlToJson = async (html: string) => {
     }
 
     return problemInfo;
+};
+
+export const formatMarkdown = (metadata: ProblemMetaData | undefined) => {
+    let markdown = "";
+    if (!metadata) {
+        return markdown;
+    }
+
+    const yaml = `---
+difficulty: ${metadata.difficulty}
+tags:\n  - ${metadata.tags.map((tag) => tag.replaceAll(" ", "")).join("\n  - ")}
+similar:\n  - ${metadata.similar_problems
+        .map((p) => nameToTitle(p))
+        .join("\n  - ")}
+date updated: 2024-12-26 19:18
+---`;
+    markdown += yaml + "\n\n";
+    markdown += `## ${metadata.index}. ${nameToTitle(metadata.name)}\n\n`;
+    markdown += `## Description\n\n${metadata.description.replaceAll(
+        "\n\n",
+        "\n"
+    )}\n\n`;
+    markdown += `## Constraints\n\n${metadata.constraints
+        .replace("**Constraints:**", "")
+        .trim()
+        .replaceAll("\n\n", "\n")}\n\n`;
+    markdown += `## Examples\n\n`;
+    metadata.examples.forEach((example) => {
+        markdown += example.replaceAll("\n\n", "\n") + "\n\n";
+    });
+    if (metadata.follow_ups) {
+        markdown += `## Follow-ups\n\n${metadata.follow_ups.replaceAll(
+            "\n\n",
+            "\n"
+        )}`;
+    }
+    return markdown;
 };

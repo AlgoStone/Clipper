@@ -1,4 +1,4 @@
-import { ButtonType } from "../types";
+import { ButtonType } from "../../types";
 import "./button.css";
 
 export interface ButtonProps {

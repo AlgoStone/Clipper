@@ -3,16 +3,7 @@ import rehypeParse from "rehype-parse";
 import rehypeRemark from "rehype-remark";
 import remarkStringify from "remark-stringify";
 import { unified } from "unified";
-
-const formatMarkdown = (md: string) => {
-    // replace all "\n\n\n\n" with "\n\n"
-    let formattedMD = md.replace(/\n\n\n\n/g, "\n\n");
-    // replace all "\n\n\n" with "\n\n"
-    formattedMD = formattedMD.replace(/\n\n\n/g, "\n\n");
-    // remove trailing whitespaces and newlines
-    formattedMD = formattedMD.trimEnd();
-    return formattedMD;
-};
+import { formatMarkdownNewLines } from "./markdown_utils";
 
 export const PlainTextReader = async (
     outerHTML: string | undefined
@@ -21,6 +12,7 @@ export const PlainTextReader = async (
         console.error("outerHTML is undefined.");
         return "Undefined Plain Text";
     }
+
     const parser = new DOMParser();
     const htmlDoc = parser.parseFromString(outerHTML, "text/html");
     const body = htmlDoc.body;
@@ -30,15 +22,15 @@ export const PlainTextReader = async (
         .use(rehypeRemark)
         .use(remarkStringify)
         .process(body.innerHTML);
-    const res = String(file);
-    return res;
+
+    return formatMarkdownNewLines(String(file));
 };
 
 export const LeetcodeProblemReader = async (outerHTML: string | undefined) => {
     let problemMetaData = {
         name: "",
         description: "",
-        examples: [] as string[],
+        examples: "",
         constraints: "",
         follow_ups: "",
         index: -1,
@@ -113,16 +105,16 @@ export const LeetcodeProblemReader = async (outerHTML: string | undefined) => {
 
     await htmlToJson(htmlString)
         .then((data) => {
-            problemMetaData.description = formatMarkdown(
+            problemMetaData.description = formatMarkdownNewLines(
                 data.description as string
             );
-            problemMetaData.examples = (data.examples as string[]).map((ex) =>
-                formatMarkdown(ex)
+            problemMetaData.examples = formatMarkdownNewLines(
+                data.examples as string
             );
-            problemMetaData.constraints = formatMarkdown(
+            problemMetaData.constraints = formatMarkdownNewLines(
                 data.constraints as string
             );
-            problemMetaData.follow_ups = formatMarkdown(
+            problemMetaData.follow_ups = formatMarkdownNewLines(
                 data.follow_up as string
             );
         })
@@ -142,17 +134,14 @@ export const LeetcodeSolutionReader = async (outerHTML: string | undefined) => {
     const htmlDoc = parser.parseFromString(outerHTML, "text/html");
     const body = htmlDoc.body;
 
-    // mYe_l WRmCx
-    // const container = body.querySelectorAll("div[class*='break-words']");
     const container = body.querySelectorAll("div.mYe_l.WRmCx");
-    console.log(container);
     if (container.length) {
         const file = await unified()
             .use(rehypeParse)
             .use(rehypeRemark)
             .use(remarkStringify)
             .process(container[0].innerHTML);
-        return String(file);
+        return formatMarkdownNewLines(String(file));
     }
 
     return "Empty Solution";

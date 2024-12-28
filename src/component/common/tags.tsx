@@ -1,4 +1,4 @@
-import { TagType } from "../types";
+import { TagType } from "../../types";
 import "./tags.css";
 
 export type TagProps = {

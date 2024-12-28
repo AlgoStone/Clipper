@@ -7,7 +7,7 @@ export type ProblemMetaData = {
 
     description: string;
     constraints: string;
-    examples: string[];
+    examples: string;
     follow_ups?: string;
 
     hints?: string[];

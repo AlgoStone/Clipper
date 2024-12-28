@@ -1,11 +1,18 @@
-import React, { useEffect, useRef, Suspense, lazy, useState } from "react";
+import React, {
+    useEffect,
+    useRef,
+    Suspense,
+    lazy,
+    useState,
+    useCallback,
+} from "react";
 
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { ProblemMetaData, TagType } from "../types";
-import { Tag } from "./tags";
-import { IconButton } from "./icon-button";
+import { Tag } from "./common/tags";
+import { IconButton } from "./common/icon-button";
 import { nameToTitle } from "../utils/markdown_utils";
 
 import "katex/dist/katex.min.css";
@@ -15,10 +22,20 @@ const Markdown = lazy(() => import("react-markdown"));
 
 interface ProblemDisplayProps {
     metadata: ProblemMetaData;
+    setMetadata: React.Dispatch<
+        React.SetStateAction<ProblemMetaData | undefined>
+    >;
 }
 
 interface MarkdownPreviewProps {
-    title: "description" | "examples" | "constraints" | "follow ups" | "solution" | "content";
+    title:
+        | "description"
+        | "examples"
+        | "constraints"
+        | "follow ups"
+        | "solution"
+        | "content"
+        | "empty";
     markdownString: string;
     onChange?: (markdownString: string) => void;
 }
@@ -56,27 +73,20 @@ const AutoResizeTextarea: React.FC<AutoResizeTextareaProps> = (props) => {
 
 export default AutoResizeTextarea;
 
-export const MarkdownPreview = (props: MarkdownPreviewProps) => {
+export const MarkdownPreview = React.memo((props: MarkdownPreviewProps) => {
     const { title, markdownString, onChange } = props;
     const [editMode, setEditMode] = useState<boolean>(false);
-    // const [md, setMD] = useState<string>(markdownString);
 
     return (
         <div className="markdown-container">
-            <div className="markdown-title">
-                <div>{title.charAt(0).toUpperCase() + title.slice(1)}</div>
-            </div>
+            {title !== "empty" && (
+                <div className="markdown-title">
+                    <div>{title.charAt(0).toUpperCase() + title.slice(1)}</div>
+                </div>
+            )}
             <div className="markdown-border">
                 {editMode ? (
                     <>
-                        {/* <textarea
-                            className="markdown-edit-textarea"
-                            onChange={(e) => {
-                                e.preventDefault();
-                                setMD(e.target.value);
-                            }}
-                            value={md}
-                        /> */}
                         <AutoResizeTextarea
                             className="markdown-edit-textarea"
                             onChange={(e) => {
@@ -215,62 +225,86 @@ export const MarkdownPreview = (props: MarkdownPreviewProps) => {
             </div>
         </div>
     );
-};
+});
+
+const TagsList = React.memo(
+    (props: {
+        index: number;
+        name: string;
+        difficulty: string;
+        tags: string[];
+        // similar_problems: string[]
+    }) => {
+        const { index, name, difficulty, tags } = props;
+        return (
+            <div className="problem-card-title-container">
+                <div className="problem-card-title">
+                    {String(index) + ". " + nameToTitle(name)}
+                </div>
+                <div className="problem-card-tags">
+                    <Tag type={TagType.Difficulty} value={difficulty} />
+                    {tags.slice(0, 3).map((topic, index) => (
+                        <Tag key={index} type={TagType.Tag} value={topic} />
+                    ))}
+                </div>
+                {/* <div className="problem-card-tags">
+        {similar_problems.map((prob, index) => (
+            <Tag
+                key={index}
+                type={TagType.Tag}
+                value={nameToTitle(prob)}
+            />
+        ))}
+    </div> */}
+            </div>
+        );
+    }
+);
 
 export const ProblemPreview = (props: ProblemDisplayProps) => {
-    const { metadata } = props;
-    // const [description, setDescription] = useState<string[]>([]);
-    // const [examples, setExamples] = useState<string[]>([]);
-    // const [constraints, setConstraints] = useState<string>("");
-    // const [followUps, setFollowUps] = useState<string>("");
+    const { metadata, setMetadata } = props;
+
+    const handleFieldChange = useCallback(
+        (field: keyof ProblemMetaData) => (value: string) => {
+            setMetadata((prev) => {
+                if (prev) {
+                    return { ...prev, [field]: value };
+                }
+                return prev;
+            });
+        },
+        [setMetadata]
+    );
 
     return (
         <div className="card-container">
             <div className="problem-card">
-                <div className="problem-card-title-container">
-                    <div className="problem-card-title">
-                        {String(metadata.index) +
-                            ". " +
-                            nameToTitle(metadata.name)}
-                    </div>
-                    <div className="problem-card-tags">
-                        <Tag
-                            type={TagType.Difficulty}
-                            value={metadata.difficulty}
-                        />
-                        {metadata.tags.map((topic, index) => (
-                            <Tag key={index} type={TagType.Tag} value={topic} />
-                        ))}
-                    </div>
-                    <div className="problem-card-tags">
-                        {metadata.similar_problems.map((prob, index) => (
-                            <Tag
-                                key={index}
-                                type={TagType.Tag}
-                                value={nameToTitle(prob)}
-                            />
-                        ))}
-                    </div>
-                </div>
+                <TagsList
+                    index={metadata.index}
+                    name={metadata.name}
+                    difficulty={metadata.difficulty}
+                    tags={metadata.tags}
+                />
                 <div className="problem-card-body">
                     <div style={{ overflow: "scroll", width: "300px" }}>
                         <MarkdownPreview
                             title="description"
                             markdownString={metadata.description}
+                            onChange={handleFieldChange("description")}
                         />
                     </div>
                     <div style={{ overflow: "scroll", width: "300px" }}>
                         <MarkdownPreview
                             title="examples"
-                            markdownString={metadata.examples.join("\n\n")}
+                            markdownString={metadata.examples}
+                            onChange={handleFieldChange("examples")}
                         />
                     </div>
                     <div style={{ overflow: "scroll", width: "300px" }}>
                         <MarkdownPreview
                             title="constraints"
-                            markdownString={metadata.constraints
-                                .replace("**Constraints:**", "")
-                                .trim()}
+                            markdownString={metadata.constraints}
+                            onChange={handleFieldChange("constraints")}
                         />
                     </div>
                     {(metadata.follow_ups ?? "").length > 0 && (

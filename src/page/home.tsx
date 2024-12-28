@@ -3,15 +3,17 @@ import {
     LeetcodeProblemReader,
     LeetcodeSolutionReader,
     PlainTextReader,
+    generateMarkdownStr,
+    nameToTitle,
 } from "../utils";
 import { ProblemMetaData, ModeType } from "../types";
-import { DatabaseSelector } from "./selector";
-import { ProblemPreview, MarkdownPreview } from "./markdown-preview";
-import { Button } from "./button";
+import { DatabaseSelector } from "../component/notion";
+import { ProblemPreview, MarkdownPreview } from "../component";
+import { Button } from "../component/common";
 import { ButtonType } from "../types";
-import { formatMarkdown, nameToTitle } from "../utils/markdown_utils";
+import {} from "../utils/markdown_utils";
 import { AnkiClient } from "../utils";
-import "./cards.css";
+import "../component/cards.css";
 
 export interface PreviewProps {
     notionAccessToken: string;
@@ -116,6 +118,7 @@ export const Home = (props: PreviewProps) => {
             await fetchProblemMetaData();
         };
         fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // const handleCollectButton = () => {
@@ -159,7 +162,10 @@ export const Home = (props: PreviewProps) => {
                 extractorType === ExtractorType.LeetCodeProblem && (
                     <>
                         {probMetaData && (
-                            <ProblemPreview metadata={probMetaData} />
+                            <ProblemPreview
+                                metadata={probMetaData}
+                                setMetadata={setProbMetaData}
+                            />
                         )}
                         <div className="button-group">
                             {/* <Button
@@ -174,7 +180,7 @@ export const Home = (props: PreviewProps) => {
                                 type={ButtonType.Primary}
                                 onClick={() => {
                                     navigator.clipboard.writeText(
-                                        formatMarkdown(probMetaData)
+                                        generateMarkdownStr(probMetaData)
                                     );
                                 }}
                             />
@@ -202,9 +208,7 @@ export const Home = (props: PreviewProps) => {
                                                     )
                                                     .join(" ") ?? "",
                                             Examples:
-                                                probMetaData?.examples.join(
-                                                    "\n\n"
-                                                ) ?? "",
+                                                probMetaData?.examples ?? "",
                                             Constraints:
                                                 probMetaData?.constraints ?? "",
                                             Solution: "",
@@ -239,27 +243,48 @@ export const Home = (props: PreviewProps) => {
                         }}
                     />
                 )}
-            {extractorType === ExtractorType.Generic && (
-                <div style={{ overflow: "scroll", width: "300px" }}>
-                    <MarkdownPreview
-                        title="content"
-                        markdownString={plainText ?? "**No Content found**"}
-                        onChange={(newText) => {
-                            setPlainText(newText);
-                        }}
-                    />
-                </div>
-            )}
-            {extractorType === ExtractorType.LeetCodeSolution && (
-                <div style={{ overflow: "scroll", width: "300px" }}>
-                    <MarkdownPreview
-                        title="examples"
-                        markdownString={plainText ?? "**No Content found**"}
-                        onChange={(newText) => {
-                            setPlainText(newText);
-                        }}
-                    />
-                </div>
+            {(extractorType === ExtractorType.Generic ||
+                extractorType === ExtractorType.LeetCodeSolution) && (
+                <>
+                    <div className="card-container">
+                        <div className="problem-card">
+                            <div className="problem-card-body">
+                                <div
+                                    style={{
+                                        overflow: "scroll",
+                                        width: "312px",
+                                    }}
+                                >
+                                    <MarkdownPreview
+                                        title="empty"
+                                        markdownString={
+                                            plainText ?? "**No Content found**"
+                                        }
+                                        onChange={(newText) => {
+                                            setPlainText(newText);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="button-group">
+                        <Button
+                            text="Copy"
+                            type={ButtonType.Primary}
+                            onClick={() => {
+                                navigator.clipboard.writeText(plainText || "");
+                            }}
+                        />
+                        <Button
+                            text="Copy"
+                            type={ButtonType.Primary}
+                            onClick={() => {
+                                navigator.clipboard.writeText(plainText || "");
+                            }}
+                        />
+                    </div>
+                </>
             )}
         </div>
     );

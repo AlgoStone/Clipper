@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Home, Auth } from "./component";
+import { Auth } from "./component";
+import { Home } from "./page";
 import "./App.css";
 
 function App() {

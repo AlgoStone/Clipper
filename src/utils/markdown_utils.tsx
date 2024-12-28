@@ -137,9 +137,9 @@ export const htmlToMarkdown = (element: Element): string => {
 
 export const htmlToJson = async (html: string) => {
     const fields = ["description", "examples", "constraints", "follow_up"];
-    const problemInfo: { [key: string]: string[] | string } = {
+    const problemInfo: { [key: string]: string } = {
         description: "",
-        examples: [],
+        examples: "",
         constraints: "",
         follow_up: "",
     };
@@ -166,29 +166,35 @@ export const htmlToJson = async (html: string) => {
 
         if (typeof problemInfo[field_value] === "string") {
             problemInfo[field_value] += content.trim() + "\n\n";
-        } else if (Array.isArray(problemInfo[field_value])) {
-            if (field_value === "examples") {
-                if (content.includes("Example ") || content.includes("示例 ")) {
-                    (problemInfo[field_value] as string[]).push(
-                        content + "\n\n"
-                    );
-                } else {
-                    (problemInfo[field_value] as string[])[
-                        (problemInfo[field_value] as string[]).length - 1
-                    ] += content.replace(/\n/g, "\n\n");
-                }
-            } else {
-                (problemInfo[field_value] as string[]).push(content);
-            }
         } else {
             console.error("Invalid field value.", field_value);
         }
+        // else if (Array.isArray(problemInfo[field_value])) {
+        //     if (field_value === "examples") {
+        //         if (content.includes("Example ") || content.includes("示例 ")) {
+        //             (problemInfo[field_value] as string[]).push(
+        //                 content + "\n\n"
+        //             );
+        //         } else {
+        //             (problemInfo[field_value] as string[])[
+        //                 (problemInfo[field_value] as string[]).length - 1
+        //             ] += content.replace(/\n/g, "\n\n");
+        //         }
+        //     } else {
+        //         (problemInfo[field_value] as string[]).push(content);
+        //     }
+        // }
     }
+
+    problemInfo.constraints = problemInfo.constraints
+        .replace("**Constraints:**", "")
+        .replace("**提示：**", "")
+        .trim();
 
     return problemInfo;
 };
 
-export const formatMarkdown = (metadata: ProblemMetaData | undefined) => {
+export const generateMarkdownStr = (metadata: ProblemMetaData | undefined) => {
     let markdown = "";
     if (!metadata) {
         return markdown;
@@ -202,20 +208,19 @@ similar:\n  - ${metadata.similar_problems
         .join("\n  - ")}
 date updated: 2024-12-26 19:18
 ---`;
+
     markdown += yaml + "\n\n";
     markdown += `## ${metadata.index}. ${nameToTitle(metadata.name)}\n\n`;
     markdown += `## Description\n\n${metadata.description.replaceAll(
         "\n\n",
         "\n"
     )}\n\n`;
-    markdown += `## Constraints\n\n${metadata.constraints
-        .replace("**Constraints:**", "")
-        .trim()
-        .replaceAll("\n\n", "\n")}\n\n`;
+    markdown += `## Constraints\n\n${metadata.constraints.replaceAll(
+        "\n\n",
+        "\n"
+    )}\n\n`;
     markdown += `## Examples\n\n`;
-    metadata.examples.forEach((example) => {
-        markdown += example.replaceAll("\n\n", "\n") + "\n\n";
-    });
+    markdown += metadata.examples.replaceAll("\n\n", "\n") + "\n\n";
     if (metadata.follow_ups) {
         markdown += `## Follow-ups\n\n${metadata.follow_ups.replaceAll(
             "\n\n",
@@ -223,4 +228,14 @@ date updated: 2024-12-26 19:18
         )}`;
     }
     return markdown;
+};
+
+export const formatMarkdownNewLines = (md: string) => {
+    // replace all "\n\n\n\n" with "\n\n"
+    let formattedMD = md.replace(/\n\n\n\n/g, "\n\n");
+    // replace all "\n\n\n" with "\n\n"
+    formattedMD = formattedMD.replace(/\n\n\n/g, "\n\n");
+    // remove trailing whitespaces and newlines
+    formattedMD = formattedMD.trimEnd();
+    return formattedMD;
 };

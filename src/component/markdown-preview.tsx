@@ -79,7 +79,8 @@ export const MarkdownPreview = React.memo((props: MarkdownPreviewProps) => {
     const [editMode, setEditMode] = useState<boolean>(false);
 
     useEffect(() => {
-        if (currentUrl !== "empty" && markdownString) {
+        if (currentUrl !== "empty" && !!markdownString) {
+            console.log("Cache markdown string", title);
             chrome.storage.local.set({ [currentUrl]: markdownString });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

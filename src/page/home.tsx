@@ -68,32 +68,35 @@ export const Home = (props: PreviewProps) => {
 
             try {
                 chrome.storage.local.get([tab.url], (result) => {
-                    console.log("Fetching data from cache.");
                     if (!forceRefresh && result) {
                         switch (newExtractorType) {
                             case ExtractorType.LeetCodeProblem:
-                                setProbMetaData(
-                                    result[tab.url as string] as ProblemMetaData
-                                );
+                                if (!!result[tab.url as string]) {
+                                    console.log("Fetching data from cache.");
+                                    setProbMetaData(
+                                        result[
+                                            tab.url as string
+                                        ] as ProblemMetaData
+                                    );
+                                    skip = true;
+                                }
                                 break;
                             case ExtractorType.LeetCodeSolution:
-                                setPlainText(
-                                    result[tab.url as string] as string
-                                );
-                                break;
                             case ExtractorType.Generic:
-                                console.log(result[tab.url as string]);
-                                setPlainText(
-                                    result[tab.url as string] as string
-                                );
+                                if (!!result[tab.url as string]) {
+                                    console.log("Fetching data from cache.");
+                                    setPlainText(
+                                        result[tab.url as string] as string
+                                    );
+                                    skip = true;
+                                }
                                 break;
                         }
-                        skip = true;
                     }
                 });
             } catch (e) {
-                console.error("Error fetching data from cache.");
-                console.error(e);
+                console.log("Error fetching data from cache.");
+                console.log(e);
             }
 
             chrome.scripting.executeScript(
@@ -103,7 +106,7 @@ export const Home = (props: PreviewProps) => {
                 },
                 (result) => {
                     if (skip || !result || result.length === 0) {
-                        console.error("No result found.");
+                        console.log("No result found.");
                         return;
                     }
 
@@ -150,6 +153,16 @@ export const Home = (props: PreviewProps) => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (
+            extractorType === ExtractorType.LeetCodeProblem &&
+            !!currentUrl &&
+            !!probMetaData
+        ) {
+            chrome.storage.local.set({ [currentUrl as string]: probMetaData });
+        }
+    }, [probMetaData, currentUrl, extractorType]);
 
     // const handleCollectButton = () => {
     //     const baseUrl = "http://127.0.0.1:8000";
@@ -226,7 +239,7 @@ export const Home = (props: PreviewProps) => {
                                 type={ButtonType.Primary}
                                 onClick={async () => {
                                     await AnkiClient.addNote(
-                                        "Default",
+                                        "LeetCode",
                                         "LeetCode",
                                         {
                                             Title: `${

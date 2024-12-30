@@ -29,17 +29,14 @@ export const Home = (props: PreviewProps) => {
     const { notionAccessToken } = props;
     const [probMetaData, setProbMetaData] = useState<ProblemMetaData>();
     const [mode, setMode] = useState<ModeType>(ModeType.Home);
+    const [currentUrl, setCurrentUrl] = useState<string>();
     const [extractorType, setExtractorType] = useState<ExtractorType>(
         ExtractorType.Generic
     );
     const [plainText, setPlainText] = useState<string>();
     let url: URL;
 
-    useEffect(() => {
-        console.log("plainText state updated:", plainText);
-    }, [plainText]);
-
-    const fetchProblemMetaData = async () => {
+    const fetchProblemMetaData = async (forceRefresh: boolean = false) => {
         const newMetaData = {} as ProblemMetaData;
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const tab = tabs[0];
@@ -65,6 +62,39 @@ export const Home = (props: PreviewProps) => {
                 }
             }
             setExtractorType(newExtractorType);
+            setCurrentUrl(tab.url);
+
+            let skip = false;
+
+            try {
+                chrome.storage.local.get([tab.url], (result) => {
+                    console.log("Fetching data from cache.");
+                    if (!forceRefresh && result) {
+                        switch (newExtractorType) {
+                            case ExtractorType.LeetCodeProblem:
+                                setProbMetaData(
+                                    result[tab.url as string] as ProblemMetaData
+                                );
+                                break;
+                            case ExtractorType.LeetCodeSolution:
+                                setPlainText(
+                                    result[tab.url as string] as string
+                                );
+                                break;
+                            case ExtractorType.Generic:
+                                console.log(result[tab.url as string]);
+                                setPlainText(
+                                    result[tab.url as string] as string
+                                );
+                                break;
+                        }
+                        skip = true;
+                    }
+                });
+            } catch (e) {
+                console.error("Error fetching data from cache.");
+                console.error(e);
+            }
 
             chrome.scripting.executeScript(
                 {
@@ -72,7 +102,7 @@ export const Home = (props: PreviewProps) => {
                     func: () => document.documentElement.outerHTML,
                 },
                 (result) => {
-                    if (!result || result.length === 0) {
+                    if (skip || !result || result.length === 0) {
                         console.error("No result found.");
                         return;
                     }
@@ -176,6 +206,13 @@ export const Home = (props: PreviewProps) => {
                             }}
                         /> */}
                             <Button
+                                text="Refresh"
+                                type={ButtonType.Primary}
+                                onClick={async () => {
+                                    await fetchProblemMetaData(true);
+                                }}
+                            />
+                            <Button
                                 text="Copy"
                                 type={ButtonType.Primary}
                                 onClick={() => {
@@ -257,12 +294,11 @@ export const Home = (props: PreviewProps) => {
                                 >
                                     <MarkdownPreview
                                         title="empty"
-                                        markdownString={
-                                            plainText ?? "**No Content found**"
-                                        }
+                                        markdownString={plainText}
                                         onChange={(newText) => {
                                             setPlainText(newText);
                                         }}
+                                        currentUrl={currentUrl}
                                     />
                                 </div>
                             </div>
@@ -270,10 +306,10 @@ export const Home = (props: PreviewProps) => {
                     </div>
                     <div className="button-group">
                         <Button
-                            text="Copy"
+                            text="Refresh"
                             type={ButtonType.Primary}
-                            onClick={() => {
-                                navigator.clipboard.writeText(plainText || "");
+                            onClick={async () => {
+                                await fetchProblemMetaData(true);
                             }}
                         />
                         <Button

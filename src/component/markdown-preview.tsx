@@ -36,8 +36,9 @@ interface MarkdownPreviewProps {
         | "solution"
         | "content"
         | "empty";
-    markdownString: string;
+    markdownString: string | undefined;
     onChange?: (markdownString: string) => void;
+    currentUrl?: string;
 }
 
 interface AutoResizeTextareaProps
@@ -74,8 +75,15 @@ const AutoResizeTextarea: React.FC<AutoResizeTextareaProps> = (props) => {
 export default AutoResizeTextarea;
 
 export const MarkdownPreview = React.memo((props: MarkdownPreviewProps) => {
-    const { title, markdownString, onChange } = props;
+    const { title, markdownString, currentUrl = "empty", onChange } = props;
     const [editMode, setEditMode] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (currentUrl !== "empty" && markdownString) {
+            chrome.storage.local.set({ [currentUrl]: markdownString });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [editMode, currentUrl]);
 
     return (
         <div className="markdown-container">
@@ -93,7 +101,12 @@ export const MarkdownPreview = React.memo((props: MarkdownPreviewProps) => {
                                 e.preventDefault();
                                 onChange && onChange(e.target.value);
                             }}
-                            value={markdownString}
+                            value={
+                                markdownString &&
+                                markdownString !== "**No Content found**"
+                                    ? markdownString
+                                    : ""
+                            }
                         />
                         <div className="markdown-edit-button">
                             <IconButton
@@ -110,7 +123,9 @@ export const MarkdownPreview = React.memo((props: MarkdownPreviewProps) => {
                             <Markdown
                                 rehypePlugins={[rehypeKatex]} // Remove rehypeRaw to avoid double rendering
                                 remarkPlugins={[remarkMath, remarkGfm]}
-                                children={markdownString}
+                                children={
+                                    markdownString ?? "**No Content found**"
+                                }
                                 className={"markdown-body"}
                                 components={{
                                     p({ node, children, ...props }) {
@@ -207,6 +222,18 @@ export const MarkdownPreview = React.memo((props: MarkdownPreviewProps) => {
                                             <li {...props} style={{}}>
                                                 {children}
                                             </li>
+                                        );
+                                    },
+                                    mark({ node, children, ...props }) {
+                                        return (
+                                            <mark
+                                                {...props}
+                                                style={{
+                                                    backgroundColor: "#ff9",
+                                                }}
+                                            >
+                                                {children}
+                                            </mark>
                                         );
                                     },
                                 }}

@@ -2,6 +2,7 @@ import { ProblemMetaData } from "../types";
 
 export const nameToTitle = (name: string, reverse: boolean = false) => {
     const avoidCapitalization = ["and", "or", "in", "on", "of", "to", "a"];
+    const allCaptial = ["i", "ii", "iii", "iv", "v"];
     if (reverse) {
         return name
             .split(" ")
@@ -14,6 +15,8 @@ export const nameToTitle = (name: string, reverse: boolean = false) => {
         .map((word) => {
             if (avoidCapitalization.includes(word.toLowerCase()))
                 return word.toLowerCase();
+            if (allCaptial.includes(word.toLowerCase()))
+                return word.toUpperCase();
             return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
         })
         .join(" ");
